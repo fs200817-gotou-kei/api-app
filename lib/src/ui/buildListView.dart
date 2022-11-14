@@ -1,53 +1,36 @@
 import 'package:api_app/src/ui/form_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/container.dart';
+import 'package:flutter/src/widgets/framework.dart';
 
 import '../api/api_service.dart';
 import '../model/profile.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class buildListView extends StatefulWidget {
+  buildListView(this.profiles, {super.key});
+  late List<Profile> profiles;
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<buildListView> createState() => _buildListViewState(profiles);
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _buildListViewState extends State<buildListView> {
   late ApiService apiService;
+  late List<Profile> profiles;
+
+  _buildListViewState(List<Profile> profiles);
 
   @override
   void initState() {
     super.initState();
+    profiles = widget.profiles;
     apiService = ApiService();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: FutureBuilder<List<Profile>>(
-        future: apiService.getProfiles(),
-        builder: (BuildContext context, AsyncSnapshot<List<Profile>> snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                  "Something wrong with message: ${snapshot.error.toString()}"),
-            );
-          } else if (snapshot.connectionState == ConnectionState.done) {
-            List<Profile>? profiles = snapshot.data;
-            return _buildListView(profiles!);
-          } else {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildListView(List<Profile> profiles) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      child: ListView.builder(
+    return Scaffold(
+      body: ListView.builder(
         itemBuilder: (context, index) {
           Profile profile = profiles[index];
           return Padding(
@@ -85,7 +68,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 .deleteProfile(profile.id)
                                                 .then((isSuccess) {
                                               if (isSuccess) {
-                                                setState(() {});
+                                                setState(() {
+                                                  profiles = profiles;
+                                                });
                                                 ScaffoldMessenger.of(
                                                         this.context)
                                                     .showSnackBar(SnackBar(
